@@ -64,7 +64,7 @@ public class TarefaDao {
 
         Tarefa tarefa = null;
         if (resultSet.next()){
-            tarefa = new Tarefa(resultSet.getInt("id"), resultSet.getString("tarefa"));
+            tarefa = new Tarefa(resultSet.getInt("id"), resultSet.getString("titulo"));
         }
 
         connection.close();
@@ -97,6 +97,36 @@ public class TarefaDao {
         }
 
 
+    }
+
+    public int deletarTarefa(int tarefaId) throws SQLException {
+        int affectedRows = 0; // Inicializamos fora para o 'return' funcionar
+
+        // 1. Validamos se a tarefa existe antes de abrir conexão (Economia de recursos)
+        Tarefa encontrarTarefa = this.encontrarTarefa(tarefaId);
+        if (encontrarTarefa == null) {
+            System.out.println("Tarefa com ID " + tarefaId + " não encontrada!");
+            return 0;
+        }
+
+        // 2. Usamos Try-with-resources para garantir o fechamento da conexão
+        String sql = "DELETE FROM tarefas WHERE id = ?";
+
+        try (Connection connection = DbConnectionFactory.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, tarefaId);
+            affectedRows = preparedStatement.executeUpdate();
+
+            if (affectedRows > 0) {
+                System.out.println("Tarefa deletada com sucesso.");
+            } else {
+                System.out.println("Opss! Nenhuma linha foi afetada ao deletar.");
+            }
+        }
+        // O connection.close() acontece automaticamente aqui pelo 'try'
+
+        return affectedRows;
     }
 
 }
